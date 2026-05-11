@@ -1,0 +1,71 @@
+name: Run G2Ray Proxy via Actions
+
+on:
+  workflow_dispatch:    # اجرای دستی
+  push:
+    branches: [ main ]
+
+jobs:
+  start-proxy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360   # ← مقدار ثابت، بدون عبارت پیچیده
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Xray-core
+        run: |
+          echo "Downloading Xray..."
+          wget -O xray.zip https://github.com/XTLS/Xray-core/releases/download/v26.3.27/Xray-linux-64.zip
+          unzip xray.zip
+          chmod +x xray
+          sudo mv xray /usr/local/bin/xray
+          rm -rf xray.zip
+
+      - name: Create config.json
+        run: |
+          cat > config.json <<EOF
+          {
+            "inbounds": [
+              {
+                "port": 443,
+                "protocol": "vless",
+                "settings": {
+                  "clients": [
+                    { "id": "550e8400-e29b-41d4-a716-446655440000" }
+                  ],
+                  "decryption": "none"
+                },
+                "streamSettings": {
+                  "network": "xhttp",
+                  "xhttpSettings": {
+                    "mode": "packet-up",
+                    "path": "/"
+                  }
+                }
+              }
+            ],
+            "outbounds": [
+              { "protocol": "freedom" }
+            ]
+          }
+          EOF
+
+      - name: Show connection link
+        run: |
+          PUBLIC_IP=$(curl -s ifconfig.me || curl -s icanhazip.com)
+          echo "============================================"
+          echo "🚀 VLESS Proxy is running on GitHub Actions"
+          echo "============================================"
+          echo "vless://550e8400-e29b-41d4-a716-446655440000@${PUBLIC_IP}:443?encryption=none&security=tls&type=xhttp&mode=packet-up&path=/#G2Ray-Actions"
+          echo ""
+          echo "⚠️  Note: This runner will auto-stop after 360 minutes (6 hours)."
+          echo "============================================"
+
+      - name: Keep proxy alive
+        run: |
+          /usr/local/bin/xray -c config.json &
+          XRAY_PID=$!
+          echo "Xray PID: $XRAY_PID"
+          # نگه داشتن اجرا تا پایان زمان مجاز
+          sleep infinity
