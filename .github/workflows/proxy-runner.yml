@@ -17,11 +17,11 @@ jobs:
         run: |
           echo "Downloading Xray..."
           wget -O xray.zip https://github.com/XTLS/Xray-core/releases/download/v26.3.27/Xray-linux-64.zip
-          echo "Extracting (overwriting existing files)..."
-          unzip -o xray.zip          # ← اضافه کردن -o
+          echo "Extracting..."
+          unzip -o xray.zip
           chmod +x xray
           sudo mv xray /usr/local/bin/xray
-          rm -rf xray.zip geoip.dat geosite.dat LICENSE README.md  # پاک کردن فایل‌های اضافی
+          rm -rf xray.zip geoip.dat geosite.dat LICENSE README.md
 
       - name: Create config.json
         run: |
@@ -29,7 +29,7 @@ jobs:
           {
             "inbounds": [
               {
-                "port": 443,
+                "port": 8443,
                 "protocol": "vless",
                 "settings": {
                   "clients": [
@@ -58,9 +58,10 @@ jobs:
           echo "============================================"
           echo "🚀 VLESS Proxy is running on GitHub Actions"
           echo "============================================"
-          echo "vless://550e8400-e29b-41d4-a716-446655440000@${PUBLIC_IP}:443?encryption=none&security=tls&type=xhttp&mode=packet-up&path=/#G2Ray-Actions"
+          echo "vless://550e8400-e29b-41d4-a716-446655440000@${PUBLIC_IP}:8443?encryption=none&security=none&type=xhttp&mode=packet-up&path=/#G2Ray-Actions"
           echo ""
           echo "⚠️  Note: This runner will auto-stop after 360 minutes (6 hours)."
+          echo "⚠️  Port: 8443 (non-privileged)"
           echo "============================================"
 
       - name: Keep proxy alive
