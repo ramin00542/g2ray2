@@ -1,14 +1,14 @@
 name: Run G2Ray Proxy via Actions
 
 on:
-  workflow_dispatch:    # اجرای دستی
+  workflow_dispatch:
   push:
     branches: [ main ]
 
 jobs:
   start-proxy:
     runs-on: ubuntu-latest
-    timeout-minutes: 360   # ← مقدار ثابت، بدون عبارت پیچیده
+    timeout-minutes: 360
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,10 +17,11 @@ jobs:
         run: |
           echo "Downloading Xray..."
           wget -O xray.zip https://github.com/XTLS/Xray-core/releases/download/v26.3.27/Xray-linux-64.zip
-          unzip xray.zip
+          echo "Extracting (overwriting existing files)..."
+          unzip -o xray.zip          # ← اضافه کردن -o
           chmod +x xray
           sudo mv xray /usr/local/bin/xray
-          rm -rf xray.zip
+          rm -rf xray.zip geoip.dat geosite.dat LICENSE README.md  # پاک کردن فایل‌های اضافی
 
       - name: Create config.json
         run: |
@@ -67,5 +68,4 @@ jobs:
           /usr/local/bin/xray -c config.json &
           XRAY_PID=$!
           echo "Xray PID: $XRAY_PID"
-          # نگه داشتن اجرا تا پایان زمان مجاز
           sleep infinity
